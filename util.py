@@ -94,5 +94,5 @@ class Data():
             mask.append([1]*len(nonzero_elems) + (max_n_node - len(nonzero_elems)) * [0])
             reversed_sess_item.append(list(reversed(session)) + (max_n_node - len(nonzero_elems)) * [0])
 
-
+        # print(f"target: {self.targets[index] - 1};\nsession_len: {session_len};\nitems: {items};\nreversed_sess_item:{reversed_sess_item};mask:{mask}")
         return self.targets[index]-1, session_len,items, reversed_sess_item, mask

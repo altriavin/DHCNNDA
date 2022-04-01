@@ -94,7 +94,7 @@ class DHCN(Module):
         adjacency = torch.sparse.FloatTensor(i, v, torch.Size(shape))
         self.adjacency = adjacency
         self.embedding = nn.Embedding(self.n_node, self.emb_size)
-        self.pos_embedding = nn.Embedding(200, self.emb_size)
+        self.pos_embedding = nn.Embedding(600, self.emb_size)
         self.HyperGraph = HyperConv(self.layers,dataset)
         self.LineGraph = LineConv(self.layers, self.batch_size)
         self.w_1 = nn.Linear(2 * self.emb_size, self.emb_size)
@@ -257,6 +257,7 @@ def test(model, test_data):
     slices = test_data.generate_batch(model.batch_size)
     auc_list = []
     for i in slices:
+        # print(f"i: {i}")
         tar, scores, con_loss = forward(model, i, test_data)
         scores = trans_to_cpu(scores).detach().numpy()
         all_index = []
@@ -281,6 +282,8 @@ def test(model, test_data):
 
 
 def train_test(model, train_data, test_data_pos, test_data_neg):
+    last_auc = 0
+    last_aupr = 0
     print('start training: ', datetime.datetime.now())
     model, mean_loss = train(model, train_data)
     print(f'mean_loss: {mean_loss}')
@@ -296,5 +299,8 @@ def train_test(model, train_data, test_data_pos, test_data_neg):
     AUC = auc(fpr, tpr)
     precision, recall, _ = precision_recall_curve(y_true, y_score)
     AUPR = auc(recall, precision)
-    print(f'auc: {AUC}; AUPR: {AUPR}')
+    if (AUC > last_auc) and (AUPR > last_aupr):
+        last_auc, last_aupr = AUC, AUPR
+        torch.save(model,"save_model/myModel.pth")
+    print(f'AUC: {AUC}; AUPR: {AUPR}; best AUC: {last_auc}; best AUPR: {last_aupr}')
 
